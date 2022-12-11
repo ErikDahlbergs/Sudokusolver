@@ -1,0 +1,214 @@
+package bst;
+
+import bst.SolverOfSudoku;
+import bst.SudokuSolver;
+
+public class SolverOfSudoku implements SudokuSolver {
+	public static int[][] emptyBoard = { { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+			{ 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+			{ 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+			{ 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
+	public static int[][] startingBoard = { { 9, 0, 0, 1, 0, 0, 0, 0, 5 }, { 0, 0, 5, 0, 9, 0, 2, 0, 1 },
+			{ 8, 0, 0, 0, 4, 0, 0, 0, 0 }, { 0, 0, 0, 0, 8, 0, 0, 0, 0 }, { 0, 0, 0, 7, 0, 0, 0, 0, 0 },
+			{ 0, 0, 0, 0, 2, 6, 0, 0, 9 }, { 2, 0, 0, 3, 0, 0, 0, 0, 6 }, { 0, 0, 0, 2, 0, 0, 9, 0, 0 },
+			{ 0, 0, 1, 9, 0, 4, 5, 7, 0 } };
+	public static int[][] unsolvable = { { 5, 1, 6, 3, 0, 7, 8, 0, 9 }, { 8, 4, 9, 6, 0, 5, 7, 0, 0 },
+			{ 7, 3, 2, 0, 0, 0, 0, 6, 5 }, { 1, 3, 5, 4, 7, 2, 9, 6, 8 }, { 0, 6, 0, 5, 9, 1, 3, 7, 0 },
+			{ 9, 0, 7, 0, 0, 6, 0, 5, 0 }, { 2, 5, 3, 6, 8, 4, 7, 9, 1 }, { 1, 8, 6, 2, 0, 7, 0, 5, 0 },
+			{ 0, 7, 4, 5, 0, 0, 6, 0, 8 } };
+	private int[][] board;
+
+	/**
+	 * Genererar ett tomt sudokubräde
+	 */
+	public SolverOfSudoku() {
+		board = new int[9][9];
+		setNumbers(emptyBoard);
+	}
+
+	/**
+	 * Sets the digit number in the box row, col.
+	 * 
+	 * @param row    The row
+	 * @param col    The column
+	 * @param number The digit to insert in row, col
+	 * @throws IllegalArgumentException if number is outside [1..9] or row or col is
+	 *                                  outside [0..8]
+	 */
+	@Override
+	public void setNumber(int row, int col, int number) {
+		if (row < 0 || row > 8 || col < 0 || col > 8 || number < 1 || number > 9) {
+			throw new IllegalArgumentException();
+		} else {
+			board[row][col] = number;
+		}
+	}
+
+	/**
+	 * Kollar om siffran number kan sättas i raden row och kolumnen col
+	 * 
+	 * @throws IllegalArgumentException if number is outside [1..9] or row or col is
+	 *                                  outside [0..8]
+	 * @return true om siffran kan sättas, annas false
+	 */
+	@Override
+	public boolean trySetNumber(int row, int col, int number) {
+		if (row < 0 || row > 8 || col < 0 || col > 8 || number < 1 || number > 9) {
+			throw new IllegalArgumentException();
+		} else {
+			if (checkRow(row, number) && checkCol(col, number) && checkSection(row, col, number)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean checkRow(int row, int number) {
+		for (int i = 0; i < 9; i++) {
+			if (getNumber(row, i) == number) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private boolean checkCol(int col, int number) {
+		for (int i = 0; i < 9; i++) {
+			if (getNumber(i, col) == number) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private boolean checkSection(int row, int col, int number) {
+		int r = row - row % 3; // Avgör vilken av de 3 sektionerna vi försöker sätta i
+		int c = col - col % 3; // Avgör vilken av de 3 sektionerna vi försöker sätta i
+
+		for (int i = r; i < r + 3; i++) {
+			for (int j = c; j < c + 3; j++) {
+				if (getNumber(i, j) == number) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	private boolean isEmpty(int row, int col) {
+		if (getNumber(row, col) == 0) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Returnerar siffran på raden row och kolumnen col.
+	 * 
+	 * @throws IllegalArgumentException if row or col is outside [0..8]
+	 */
+	@Override
+	public int getNumber(int row, int col) {
+		if (row < 0 || row > 8 || col < 0 || col > 8) {
+			throw new IllegalArgumentException();
+		} else {
+			return board[row][col];
+		}
+	}
+
+	/**
+	 * Tar bort siffran på raden row och kolumnen col.
+	 * 
+	 * @throws IllegalArgumentException if row or col is outside [0..8]
+	 */
+	@Override
+	public void removeNumber(int row, int col) {
+		if (row < 0 || row > 8 || col < 0 || col > 8) {
+			throw new IllegalArgumentException();
+		} else {
+			board[row][col] = 0;
+		}
+	}
+
+	/**
+	 * Tömmer hela sudokut
+	 */
+	@Override
+	public void clear() {
+		setNumbers(emptyBoard);
+
+	}
+
+	/**
+	 * Försöker lösa sudokut 
+	 * @return true om sudokut går att lösa, annars false
+	 */
+	@Override
+	public boolean solve() {
+		return solve(0, 0);
+	}
+
+	private boolean solve(int row, int col) {
+		if (row == 9) { // Då har programmet gått igenom hela brädet
+			return true;
+		} else {
+			if (isEmpty(row, col)) { // Kollar att rutan är tom
+				for (int number = 1; number <= 9; number++) {
+					if (trySetNumber(row, col, number)) {
+						setNumber(row, col, number);
+						if ((col == 8 ? solve(row + 1, 0) : solve(row, col + 1))) {
+							return true;
+						} else {
+							removeNumber(row, col);
+						}
+					}
+				}
+				return false; // Gick igenom alla siffror men hittade ingen lösning
+			} else {
+				int x = getNumber(row, col); // Annars nekar numret sig själv
+				removeNumber(row, col);
+				if (trySetNumber(row, col, x)) {
+					setNumber(row, col, x);
+					return (col == 8 ? solve(row + 1, 0) : solve(row, col + 1));
+				} else {
+					setNumber(row, col, x);
+					return false;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Hömtar siffrorna i sudokut.
+	 * 
+	 * @return brädet som int[][]
+	 */
+	@Override
+	public int[][] getNumbers() {
+		int[][] readBoard = new int[9][9];
+		for (int row = 0; row < 9; row++) {
+			for (int col = 0; col < 9; col++) {
+				readBoard[row][col] = board[row][col];
+			}
+		}
+		return readBoard;
+	}
+
+	/**
+	 * Fyller i siffrorna i numbers i sudokut.
+	 * 
+	 * @throws IllegalArgumentException if not all numbers in [0..9]
+	 **/
+	@Override
+	public void setNumbers(int[][] numbers) {
+		for (int i = 0; i < 9; i++) {
+			for (int j = 0; j < 9; j++) {
+				if (numbers[i][j] == 0) {
+					removeNumber(i, j);
+				} else
+					setNumber(i, j, numbers[i][j]);
+			}
+		}
+	}
+
+}
